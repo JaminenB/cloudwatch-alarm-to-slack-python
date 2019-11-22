@@ -2,8 +2,8 @@ import json, sys, os
 import requests
 
 # Environment Variable
-WEBHOOK_URL=os.environ['SLACK_WEBHOOK_URL']
-# def extract_message(message:
+WEBHOOK_URL=os.environ['WEBHOOK']
+
     
 def send_alert_slack(message):
     try:
