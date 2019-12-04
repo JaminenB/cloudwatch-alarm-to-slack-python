@@ -5,7 +5,7 @@
 -The environment variable is configured in the AWS Lambda Dashboard for this function
 -Using latest python runtime 3.8
 
--Note that you have to cd to your project's directory and 'pip import requests -t .' for the requests library.
+-Note that you have to cd to your project's directory and 'pip import requests -t ./' for the requests library.
 -This is because the boto.vendored library will update soon and remove the requests module.
 -Once you've installed the requests library, zip all the files in your project's directory.  You can upload this zip to lambda now.
 """
