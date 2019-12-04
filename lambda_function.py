@@ -1,14 +1,20 @@
-#Using Python 2.7 as Runtime in lambda function.
-#file named 'main.py'
-#Environmental function defined as 'WEBHOOK' for my Slack webhook.
+"""
+-CloudWatch alert for System and Instance state monitoring. Publishes to the SNS topic labeled 'AWS_CloudWatch_to_Slack'
+-This Lamba function, also named 'AWS_CloudWatch_to_Slack', subscribes to the previously mentioned SNS topic and receives the alert details
+-The alert details are parsed into a json message that is delivered to Slack via webhook  
+-The environment variable is configured in the AWS Lambda Dashboard for this function
+-Using latest python runtime 3.8
 
-import json, sys, os
-from botocore.vendored import requests
+-Note that you have to cd to your project's directory and 'pip import requests -t .' for the requests library.
+-This is because the boto.vendored library will update soon and remove the requests module.
+-Once you've installed the requests library, zip all the files in your project's directory.  You can upload this zip to lambda now.
+"""
 
-# Environment Variable
+import json, os, requests
+
+# environment variable webhook
 WEBHOOK_URL=os.environ['WEBHOOK']
-
-#Sends alert to slack using 'requests' module. JSON format
+    
 def send_alert_slack(message):
     try:
         r = requests.post(WEBHOOK_URL, json=message)
@@ -21,31 +27,40 @@ def send_alert_slack(message):
         raise Exception(errt)
     except requests.exceptions.RequestException as err:
         raise Exception(err)
-    # print(requests)
-
-#Prepares message by parsing out the wanted information from the SNS topic.
-#Returns parsed information to the 'send_alert_slack' function.
+    
+# parse alert body for message details we want to send to Slack.  Sends pertinent info to the 'send_alert_slace' function
 def prepare_message(record):
     subject = record['Sns']['Subject']
     message = json.loads(record['Sns']['Message'])
+    
+    messageColor = ""
+    
+    if message['NewStateValue'] == "OK":
+        message['NewStateValue'] = "OK  :white_check_mark:"
+        messageColor = 'good'
+    elif message['NewStateValue'] == "ALARM":
+        message['NewStateValue'] = "ALARM  :fire:"
+        messageColor = 'danger'
+    
     body = {
     'text': subject,
     'attachments': [{
-      'text': message['NewStateReason'],
+      'text': message['AlarmDescription'],
+      'color' : messageColor,
       'fields': [{
-        'title': 'Time',
-        'value': message['StateChangeTime'],
+        'title': '*Old State Value*',
+        'value': message['OldStateValue'],
         'short': True,
       }, {
-        'title': 'Alarm',
+        'title': '*Alarm*',
         'value': message['AlarmName'],
         'short': True,
       }, {
-        'title': 'Account',
-        'value': message['AWSAccountId'],
+        'title': '*Current State Value*',
+        'value': message['NewStateValue'],
         'short': True,
       }, {
-        'title': 'Region',
+        'title': '*Region*',
         'value': message['Region'],
         'short': True,
       }],
@@ -53,7 +68,8 @@ def prepare_message(record):
     }
     return send_alert_slack(body)
 
-#Main handler that receives SNS topic - then calls prepare_message to parse the wanted information. 
+
+# main handler
 def lambda_handler(event, context):
     try:
         print("event received", json.dumps(event))
