@@ -3,11 +3,6 @@
 -This Lamba function, also named 'AWS_CloudWatch_to_Slack', subscribes to the previously mentioned SNS topic and receives the alert details
 -The alert details are parsed into a json message that is delivered to Slack via webhook  
 -The environment variable is configured in the AWS Lambda Dashboard for this function
--Using latest python runtime 3.8
-
--Note that you have to cd to your project's directory and 'pip import requests -t ./' for the requests library.
--This is because the boto.vendored library will update soon and remove the requests module.
--Once you've installed the requests library, zip all the files in your project's directory.  You can upload this zip to lambda now.
 """
 
 import json, os, requests
